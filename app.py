@@ -232,6 +232,3 @@ with tab3:
 
 st.markdown("---")
 st.markdown("🎯 **Try it now!** Enter any topic and click 'RUN AUTOMATION TEST' to see the complete workflow")
-
-# Step 5: Run the app
-!streamlit run app.py & npx localtunnel --port 8501
