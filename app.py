@@ -1,4 +1,3 @@
-!pip install streamlit openai sqlalchemy requests pandas plotly pyngrok
 
 # Step 4: Create the main app file
 %%writefile app.py
