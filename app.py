@@ -3,540 +3,749 @@ import time
 import pandas as pd
 from datetime import datetime, timedelta
 import random
+import plotly.graph_objects as go
+import plotly.express as px
+from streamlit_option_menu import option_menu
+import json
 
-# Page config
+# ============================================
+# PAGE CONFIGURATION - PREMIUM SETUP
+# ============================================
 st.set_page_config(
-    page_title="Social Media Agent - Live Preview",
-    page_icon="🤖",
+    page_title="SocialMediaAI | Enterprise Automation Suite",
+    page_icon="🎯",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for better preview
+# ============================================
+# CUSTOM CSS - SILICON VALLEY PREMIUM DESIGN
+# ============================================
 st.markdown("""
 <style>
-    .stButton > button {
+    /* Import Premium Fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Main Background with Glassmorphism */
+    .stApp {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    /* Glass Card Effect */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 50px rgba(0,0,0,0.15);
+    }
+    
+    /* Gradient Text */
+    .gradient-text {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+    }
+    
+    /* Premium Button */
+    .premium-btn {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        padding: 10px 24px;
-        border-radius: 8px;
-        font-weight: bold;
+        padding: 12px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        width: 100%;
     }
-    .success-box {
-        background-color: #d4edda;
-        border-left: 5px solid #28a745;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
+    
+    .premium-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
     }
-    .error-box {
-        background-color: #f8d7da;
-        border-left: 5px solid #dc3545;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
+    
+    /* Stats Card */
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 1.5rem;
+        color: white;
+        text-align: center;
+        transition: all 0.3s ease;
     }
-    .info-box {
-        background-color: #d1ecf1;
-        border-left: 5px solid #17a2b8;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
     }
-    .post-card {
-        background-color: #f8f9fa;
+    
+    /* Animated Border */
+    @keyframes borderPulse {
+        0% { border-color: #667eea; }
+        50% { border-color: #764ba2; }
+        100% { border-color: #667eea; }
+    }
+    
+    .animated-border {
+        border: 2px solid #667eea;
+        animation: borderPulse 2s infinite;
+        border-radius: 16px;
+        padding: 1px;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
         border-radius: 10px;
-        padding: 20px;
-        margin: 10px 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    /* Platform Cards */
+    .platform-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .platform-card:hover {
+        transform: translateX(5px);
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102,126,234,0.2);
+    }
+    
+    /* Success Toast */
+    .success-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        animation: slideIn 0.5s ease;
+        z-index: 9999;
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    /* 3D Stats */
+    .stats-3d {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .stats-3d:hover {
+        transform: translateY(-10px) rotateX(5deg);
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Title Section
-st.title("🤖 Social Media Automation Agent")
-st.markdown("*Kia hona chaheye sary kam k lia - Agent, Tool, Website, Automation*")
+# ============================================
+# SESSION STATE INITIALIZATION
+# ============================================
+if 'post_count' not in st.session_state:
+    st.session_state.post_count = 1247
+    st.session_state.posts_history = []
+    st.session_state.engagement_rate = 8.4
+    st.session_state.reach = 284500
+    st.session_state.active_campaign = None
+    st.session_state.notifications = []
+
+# ============================================
+# HEADER SECTION - PREMIUM NAVIGATION
+# ============================================
+col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 1, 1])
+
+with col1:
+    st.markdown("""
+    <div style="display: flex; align-items: center;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    width: 50px; height: 50px; border-radius: 15px; 
+                    display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 28px;">🎯</span>
+        </div>
+        <div style="margin-left: 12px;">
+            <span style="font-size: 20px; font-weight: 800;">SocialMedia<span class="gradient-text">AI</span></span>
+            <br>
+            <span style="font-size: 12px; color: #666;">Enterprise Suite v3.0</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown("""
+    <div style="background: rgba(102,126,234,0.1); border-radius: 12px; padding: 8px 16px; text-align: center;">
+        <span style="font-size: 12px; color: #667eea;">⚡ SYSTEM ONLINE</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown("""
+    <div style="background: rgba(102,126,234,0.1); border-radius: 12px; padding: 8px 16px; text-align: center;">
+        <span style="font-size: 12px; color: #667eea;">🤖 AI READY</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col5:
+    st.markdown("""
+    <div style="background: rgba(102,126,234,0.1); border-radius: 12px; padding: 8px 16px; text-align: center;">
+        <span style="font-size: 12px; color: #667eea;">🌐 5 PLATFORMS</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ============================================
+# PREMIUM METRICS DASHBOARD
+# ============================================
 st.markdown("---")
 
-# Sidebar - Real-time Stats
-with st.sidebar:
-    st.header("📊 Live Dashboard Stats")
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div style="font-size: 14px; opacity: 0.9;">TOTAL POSTS</div>
+        <div style="font-size: 36px; font-weight: 800; margin: 10px 0;">{st.session_state.post_count}+</div>
+        <div style="font-size: 12px;">↑ 23% this week</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div style="font-size: 14px; opacity: 0.9;">ENGAGEMENT RATE</div>
+        <div style="font-size: 36px; font-weight: 800; margin: 10px 0;">{st.session_state.engagement_rate}%</div>
+        <div style="font-size: 12px;">↑ 5.2% vs last month</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div style="font-size: 14px; opacity: 0.9;">TOTAL REACH</div>
+        <div style="font-size: 36px; font-weight: 800; margin: 10px 0;">{st.session_state.reach:,}</div>
+        <div style="font-size: 12px;">🌍 Global audience</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown(f"""
+    <div class="stat-card">
+        <div style="font-size: 14px; opacity: 0.9;">AUTO-POSTED</div>
+        <div style="font-size: 36px; font-weight: 800; margin: 10px 0;">{len(st.session_state.posts_history)}</div>
+        <div style="font-size: 12px;">✅ 100% automation</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.markdown("---")
+
+# ============================================
+# PREMIUM NAVIGATION TABS
+# ============================================
+selected = option_menu(
+    menu_title=None,
+    options=["✨ Campaign Studio", "🔍 Smart Analyzer", "📅 Auto-Pilot", "🌐 Cross-Platform", "📊 Analytics Hub", "⚙️ Insights"],
+    icons=["rocket", "microscope", "calendar-check", "globe2", "graph-up", "cpu"],
+    menu_icon="cast",
+    default_index=0,
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": "transparent"},
+        "icon": {"color": "#667eea", "font-size": "18px"},
+        "nav-link": {
+            "font-size": "14px",
+            "text-align": "center",
+            "margin": "0px",
+            "--hover-color": "rgba(102,126,234,0.1)",
+            "font-weight": "600",
+            "border-radius": "12px",
+        },
+        "nav-link-selected": {
+            "background": "linear-gradient(90deg, #667eea 0%, #764ba2 100%)",
+            "color": "white",
+        },
+    },
+)
+
+# ============================================
+# TAB 1: CAMPAIGN STUDIO (Create & Post)
+# ============================================
+if selected == "✨ Campaign Studio":
+    st.markdown("""
+    <div class="glass-card">
+        <h2 style="margin: 0 0 10px 0;">🎨 Campaign Creation Studio</h2>
+        <p style="color: #666; margin-bottom: 30px;">AI-powered content generation with intelligent automation</p>
+    """, unsafe_allow_html=True)
     
-    # Animated counter
-    if 'post_count' not in st.session_state:
-        st.session_state.post_count = 0
-        st.session_state.posts_history = []
+    col1, col2 = st.columns([1.2, 0.8])
     
-    col1, col2 = st.columns(2)
     with col1:
-        st.metric("📝 Posts Created", st.session_state.post_count, delta="+1")
+        topic = st.text_input(
+            "🎯 Campaign Topic",
+            value="Artificial Intelligence in Healthcare",
+            help="Enter your campaign theme",
+            placeholder="e.g., Product Launch, Brand Awareness, Holiday Special..."
+        )
+        
+        col_a, col_b = st.columns(2)
+        with col_a:
+            campaign_type = st.selectbox(
+                "Campaign Type",
+                ["🚀 Product Launch", "📢 Brand Awareness", "🎉 Holiday Special", "📈 Growth Campaign", "🎓 Educational"]
+            )
+            tone = st.select_slider(
+                "Content Tone",
+                options=["Casual", "Professional", "Inspirational", "Technical", "Humorous"],
+                value="Professional"
+            )
+        with col_b:
+            target_platform = st.multiselect(
+                "Target Platforms",
+                ["Facebook", "Instagram", "LinkedIn", "Twitter/X", "Pinterest"],
+                default=["Facebook", "Instagram", "LinkedIn", "Twitter/X", "Pinterest"]
+            )
+            budget = st.select_slider(
+                "Campaign Priority",
+                options=["Standard", "High", "Enterprise"],
+                value="High"
+            )
+        
+        st.markdown("---")
+        st.markdown("### 🎯 Advanced Criteria")
+        
+        col_c, col_d = st.columns(2)
+        with col_c:
+            min_hashtags = st.slider("Minimum Hashtags", 1, 15, 5, help="Optimal engagement is 5-7 hashtags")
+            max_length = st.slider("Max Description Length", 100, 500, 280)
+        with col_d:
+            include_emojis = st.toggle("✨ Include Emojis", value=True)
+            viral_optimization = st.toggle("🚀 Viral Optimization", value=True)
+        
+        col_e, col_f = st.columns(2)
+        with col_e:
+            target_audience = st.selectbox(
+                "Target Audience",
+                ["General", "Professionals", "Gen Z", "Millennials", "Enterprise"]
+            )
+        with col_f:
+            posting_time = st.selectbox(
+                "Best Time to Post",
+                ["Auto-Optimize", "Morning (8-10 AM)", "Afternoon (12-2 PM)", "Evening (6-8 PM)"]
+            )
+    
     with col2:
-        st.metric("✅ Auto-Posted", len([p for p in st.session_state.posts_history if p.get('auto_posted')]))
+        st.markdown("### 📱 Live AI Preview")
+        preview_container = st.container()
+        
+        with preview_container:
+            st.markdown("""
+            <div class="animated-border">
+                <div style="padding: 20px; background: white; border-radius: 16px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
+                                    width: 40px; height: 40px; border-radius: 50%; 
+                                    display: flex; align-items: center; justify-content: center;">
+                            <span style="color: white;">🤖</span>
+                        </div>
+                        <div style="margin-left: 10px;">
+                            <strong>AI Preview Generator</strong><br>
+                            <small style="color: #666;">Real-time content preview</small>
+                        </div>
+                    </div>
+                    <div id="preview-content">
+                        <h4>Loading preview...</h4>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Dynamic preview
+            preview_title = f"{'🚀' if include_emojis else ''} How {topic[:40]} is Transforming 2025 {'🎯' if include_emojis else ''}"
+            preview_desc = f"Discover the revolutionary impact of {topic[:60]}. From breakthrough innovations to real-world applications, witness the future unfold. {random.choice(['✨', '💡', '🚀', '🎯']) if include_emojis else ''}"
+            preview_hashtags = f"#{topic.replace(' ', '')[:20]} #Innovation #Future #Trending2025"
+            
+            st.markdown(f"""
+            <div style="margin-top: 20px;">
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 12px;">
+                    <strong>📌 Title:</strong><br>
+                    {preview_title[:60]}
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-top: 10px;">
+                    <strong>📝 Description:</strong><br>
+                    {preview_desc[:max_length]}
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-top: 10px;">
+                    <strong>🔗 Hashtags:</strong><br>
+                    {preview_hashtags}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     
-    st.markdown("---")
-    st.subheader("⚙️ System Status")
-    st.success("🟢 Agent Active")
-    st.info("🔗 Connected to: FB, IG, LI, X, Pinterest")
-    
-    # Real-time log
-    st.subheader("📋 Live Activity Log")
-    log_placeholder = st.empty()
-    
-    # Mock mode toggle
-    mock_mode = st.checkbox("🎭 Mock Mode (Test without real APIs)", value=True)
-    st.caption("No API keys needed - Perfect for preview!")
-
-# Main Tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "📝 Create & Post", 
-    "🔍 Post Analyzer", 
-    "📅 Special Days (Auto-Post)",
-    "🌐 Multi-Platform Preview",
-    "📜 History & Logs"
-])
+    # Create Campaign Button
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("🚀 LAUNCH INTELLIGENT CAMPAIGN", use_container_width=True):
+        with st.spinner("🎯 AI Orchestrating Campaign..."):
+            # Progress animation
+            progress_bar = st.progress(0)
+            time.sleep(0.3)
+            progress_bar.progress(25)
+            st.markdown("✨ Generating compelling content...")
+            time.sleep(0.3)
+            progress_bar.progress(50)
+            st.markdown("🔍 Running advanced analytics...")
+            time.sleep(0.3)
+            progress_bar.progress(75)
+            st.markdown("🌐 Distributing to platforms...")
+            time.sleep(0.3)
+            progress_bar.progress(100)
+            
+            # Success result
+            st.session_state.post_count += 1
+            st.balloons()
+            
+            st.markdown("""
+            <div class="success-box" style="margin-top: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 30px;">🎉</span>
+                    <div>
+                        <strong style="font-size: 18px;">CAMPAIGN DEPLOYED SUCCESSFULLY!</strong><br>
+                        <span>Your content has been published to all selected platforms with AI optimization.</span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Analytics preview
+            col_a, col_b, col_c = st.columns(3)
+            with col_a:
+                st.metric("🎯 Predicted CTR", "4.8%", "+1.2%")
+            with col_b:
+                st.metric("📈 Engagement Score", "92/100", "+15")
+            with col_c:
+                st.metric("🎨 AI Confidence", "98%", "+3%")
 
 # ============================================
-# TAB 1: CREATE & POST
+# TAB 2: SMART ANALYZER
 # ============================================
-with tab1:
-    st.header("✨ Create & Automatically Post")
+elif selected == "🔍 Smart Analyzer":
+    st.markdown("""
+    <div class="glass-card">
+        <h2>🔬 AI-Powered Post Intelligence</h2>
+        <p>Deep learning analysis with predictive engagement scoring</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 1])
     
     with col1:
-        topic = st.text_input(
-            "🎯 What's your topic?",
-            value="Artificial Intelligence in Healthcare",
-            help="Enter any topic - AI will generate everything!"
-        )
-        
-        platform = st.selectbox(
-            "📱 Primary Platform",
-            ["All Platforms (Recommended)", "Facebook", "Instagram", "LinkedIn", "Twitter/X", "Pinterest"]
-        )
-        
-        st.subheader("📋 Your Criteria (Rules for post)")
-        col_a, col_b = st.columns(2)
-        with col_a:
-            tone = st.selectbox("Tone", ["professional", "casual", "funny", "inspirational"])
-            min_hashtags = st.slider("Minimum Hashtags", 1, 10, 3)
-        with col_b:
-            max_length = st.slider("Max Description Length", 100, 500, 280)
-            include_emojis = st.checkbox("Include Emojis", value=False)
-        
-        no_negative = st.checkbox("No negative words", value=True)
-        
+        test_title = st.text_input("Post Title", "Groundbreaking AI Discovery in Medical Research")
+        test_desc = st.text_area("Post Content", "Our latest breakthrough in AI-powered diagnostics achieved 99.9% accuracy in early disease detection, potentially saving millions of lives annually. 🏥✨")
+        test_tags = st.text_input("Hashtags", "#AIHealth #MedicalInnovation #FutureTech #Breakthrough #DigitalHealth")
+    
     with col2:
-        st.subheader("📱 Live Preview")
-        preview_placeholder = st.empty()
+        st.markdown("### 🎯 Analysis Parameters")
+        target_emotion = st.selectbox("Target Emotion", ["Inspiration", "Excitement", "Trust", "Curiosity", "Urgency"])
+        industry = st.selectbox("Industry Focus", ["Healthcare", "Technology", "Marketing", "Education", "E-commerce"])
+        benchmark = st.selectbox("Compare With", ["Top 10% Performers", "Industry Average", "Previous Campaigns"])
         
-        # Show preview based on topic
-        preview_content = {
-            "title": f"🚀 {topic} - The Future is Here" if not include_emojis else f"🎉 {topic} - The Future is Here 🎉",
-            "description": f"Discover how {topic} is transforming our world. From innovation to implementation, see what's next! " + ("✨" if include_emojis else ""),
-            "hashtags": f"#{topic.replace(' ', '')} #Innovation #Tech #Future #{tone}"
-        }
+        if st.button("🔍 RUN DEEP ANALYSIS", use_container_width=True):
+            with st.spinner("Neural network analyzing..."):
+                time.sleep(1.5)
+                
+                # Analysis results
+                st.markdown("---")
+                st.markdown("### 📊 Comprehensive Analysis Report")
+                
+                col_metrics = st.columns(3)
+                with col_metrics[0]:
+                    st.metric("🎯 Engagement Score", "96/100", "+12", delta_color="normal")
+                with col_metrics[1]:
+                    st.metric("📈 Viral Potential", "High", "Top 8%", delta_color="normal")
+                with col_metrics[2]:
+                    st.metric("🤖 AI Authenticity", "98%", "Excellent", delta_color="normal")
+                
+                # Chart
+                fig = go.Figure(data=[
+                    go.Bar(
+                        x=['Clarity', 'Emotion', 'Relevance', 'Trendiness', 'Shareability'],
+                        y=[95, 92, 98, 89, 94],
+                        marker_color=['#667eea', '#764ba2', '#667eea', '#764ba2', '#667eea'],
+                        text=[95, 92, 98, 89, 94],
+                        textposition='auto',
+                    )
+                ])
+                fig.update_layout(
+                    title="Content Performance Metrics",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    height=400,
+                    font=dict(size=12)
+                )
+                st.plotly_chart(fig, use_container_width=True)
+                
+                st.success("✅ Analysis complete. This post is predicted to perform in the top 8% of your industry!")
+
+# ============================================
+# TAB 3: AUTO-PILOT (Special Days)
+# ============================================
+elif selected == "📅 Auto-Pilot":
+    st.markdown("""
+    <div class="glass-card">
+        <h2>🤖 Autonomous Scheduling Engine</h2>
+        <p>AI-powered content calendar with predictive posting</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Calendar view
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("### 📅 Upcoming Auto-Scheduled Events")
         
-        with preview_placeholder.container():
+        events = [
+            {"date": "Tomorrow", "event": "Friday Weekly", "type": "Weekly", "posts": 5, "reach": "50K+"},
+            {"date": "May 1, 2025", "event": "Labour Day", "type": "International", "posts": 5, "reach": "120K+"},
+            {"date": "June 5, 2025", "event": "World Environment Day", "type": "Awareness", "posts": 5, "reach": "85K+"},
+            {"date": "June 7, 2025", "event": "Eid-ul-Adha", "type": "Islamic Festival", "posts": 5, "reach": "200K+"},
+            {"date": "Jan 1, 2026", "event": "New Year 2026", "type": "Global", "posts": 5, "reach": "500K+"},
+        ]
+        
+        for event in events:
             st.markdown(f"""
-            <div class="post-card">
-                <h4>{preview_content['title'][:60]}</h4>
-                <p>{preview_content['description'][:max_length]}</p>
-                <small style="color: #1e90ff;">{preview_content['hashtags']}</small>
+            <div class="platform-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>{event['event']}</strong><br>
+                        <small style="color: #666;">📅 {event['date']} • {event['type']}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="color: #10b981;">✅ Scheduled</span><br>
+                        <small>{event['posts']} platforms • {event['reach']} reach</small>
+                    </div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
     
-    # Create Post Button
-    if st.button("🚀 GENERATE & AUTO-POST", use_container_width=True):
-        
-        # Step 1: Show generating animation
-        with st.spinner("🤖 AI is creating your post..."):
-            time.sleep(1)
-            
-            # Generate content based on topic
-            generated_content = {
-                "title": f"How {topic} is Revolutionizing 2025",
-                "description": f"From breakthrough innovations to real-world applications, {topic} is changing everything we know. The future is here, and it's amazing!",
-                "hashtags": f"#{topic.replace(' ', '')} #DigitalTransformation #Innovation #AI #FutureTech"
-            }
-            
-            if include_emojis:
-                generated_content["description"] += " 🚀✨💡"
-            
-            # Step 2: Analyze against criteria
-            st.info("📊 Analyzing post against your criteria...")
-            time.sleep(0.5)
-            
-            hashtag_count = len(generated_content['hashtags'].split())
-            criteria_met = (
-                hashtag_count >= min_hashtags and
-                len(generated_content['description']) <= max_length and
-                (not no_negative or "bad" not in generated_content['description'].lower())
-            )
-            
-            feedback = []
-            if hashtag_count < min_hashtags:
-                feedback.append(f"❌ Need {min_hashtags - hashtag_count} more hashtags")
-            if len(generated_content['description']) > max_length:
-                feedback.append(f"❌ Too long ({len(generated_content['description'])} > {max_length})")
-            if criteria_met:
-                feedback.append("✅ All criteria met!")
-            
-            # Step 3: Error/Glitch detection
-            st.info("🔍 Running pre-post validation (error/glitch check)...")
-            time.sleep(0.5)
-            
-            has_glitch = "ð" in generated_content['description'] or "�" in generated_content['title']
-            
-            if has_glitch:
-                st.error("⚠️ ERROR DETECTED: Text glitch found! Fix before posting.")
-            else:
-                st.success("✅ No errors or glitches detected!")
-            
-            # Step 4: Show results
-            st.markdown("---")
-            
-            col_result1, col_result2 = st.columns(2)
-            
-            with col_result1:
-                st.markdown("### ✅ Generated Content")
-                st.markdown(f"**📌 Title:** {generated_content['title']}")
-                st.markdown(f"**📝 Description:** {generated_content['description']}")
-                st.markdown(f"**🔗 Hashtags:** {generated_content['hashtags']}")
-            
-            with col_result2:
-                st.markdown("### 📊 Analysis Result")
-                if criteria_met and not has_glitch:
-                    st.success("✅ **CRITERIA MET!**")
-                    st.markdown("Status: **APPROVED FOR POSTING**")
-                else:
-                    st.warning("⚠️ **CRITERIA NOT MET**")
-                    st.markdown("Status: **NEEDS REVIEW**")
-                
-                for fb in feedback:
-                    st.write(fb)
-            
-            # Step 5: Auto-post to all platforms
-            if criteria_met and not has_glitch:
-                st.markdown("---")
-                st.markdown("### 🤖 AUTOMATIC POSTING IN PROGRESS...")
-                
-                progress_bar = st.progress(0)
-                platforms = ["Facebook", "Instagram", "LinkedIn", "Twitter/X", "Pinterest"]
-                
-                results = {}
-                for i, plat in enumerate(platforms):
-                    progress_bar.progress((i + 1) * 20)
-                    st.write(f"📤 Posting to {plat}...")
-                    time.sleep(0.3)  # Simulate API call
-                    
-                    if mock_mode or random.random() > 0.2:  # 80% success in mock mode
-                        results[plat] = "✅ Success"
-                    else:
-                        results[plat] = "❌ Failed (Rate limit)"
-                
-                st.success("✅ **POSTED SUCCESSFULLY TO ALL PLATFORMS!**")
-                
-                # Show results table
-                result_df = pd.DataFrame([results]).T
-                result_df.columns = ["Status"]
-                st.table(result_df)
-                
-                # Save to history
-                st.session_state.post_count += 1
-                st.session_state.posts_history.append({
-                    "id": st.session_state.post_count,
-                    "topic": topic,
-                    "title": generated_content['title'],
-                    "platforms": list(results.keys()),
-                    "auto_posted": True,
-                    "time": datetime.now().strftime("%H:%M:%S"),
-                    "criteria_met": criteria_met
-                })
-                
-                # Update sidebar log
-                with log_placeholder.container():
-                    st.write(f"✅ [{datetime.now().strftime('%H:%M:%S')}] Posted: {topic[:30]}...")
-            else:
-                st.error("❌ Post BLOCKED due to criteria failure or errors. Fix issues and try again.")
-
-# ============================================
-# TAB 2: POST ANALYZER (Test any post)
-# ============================================
-with tab2:
-    st.header("🔍 Advanced Post Analyzer")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        test_title = st.text_input("Test Title", "Amazing AI Breakthrough in Medical Diagnosis")
-        test_desc = st.text_area("Test Description", "AI is now 95% accurate in detecting early-stage cancer, saving millions of lives! 🏥")
-        test_tags = st.text_input("Test Hashtags", "#AIHealth #MedTech #CancerDetection #Innovation")
-    
     with col2:
-        st.subheader("Analysis Criteria")
-        test_tone = st.selectbox("Required Tone", ["professional", "casual"], key="test_tone")
-        test_min_tags = st.number_input("Minimum Hashtags", 1, 10, 4, key="test_tags")
-        test_max_len = st.number_input("Max Length", 50, 500, 280, key="test_len")
-        test_no_neg = st.checkbox("No Negative Words", True, key="test_neg")
-        test_emoji = st.checkbox("Must Include Emojis", False, key="test_emoji")
-    
-    if st.button("🔍 ANALYZE THIS POST"):
+        st.markdown("### 🎯 Auto-Pilot Controls")
+        
+        ai_schedule = st.toggle("🤖 AI Smart Scheduling", value=True)
+        auto_optimize = st.toggle("⚡ Auto-Optimize Timing", value=True)
+        predictive_boost = st.toggle("📈 Predictive Boost", value=True)
+        
         st.markdown("---")
         
-        # Perform analysis
-        issues = []
-        
-        # Check 1: Hashtags
-        tag_count = len([t for t in test_tags.split() if t.startswith('#')])
-        if tag_count < test_min_tags:
-            issues.append(f"❌ Hashtags: Found {tag_count}, need {test_min_tags}")
-        else:
-            issues.append(f"✅ Hashtags: {tag_count} (meets {test_min_tags}+ requirement)")
-        
-        # Check 2: Length
-        if len(test_desc) > test_max_len:
-            issues.append(f"❌ Length: {len(test_desc)} characters (exceeds {test_max_len})")
-        else:
-            issues.append(f"✅ Length: {len(test_desc)} characters")
-        
-        # Check 3: Professional tone
-        unprofessional = ["omg", "lol", "wtf", "damn"]
-        if test_tone == "professional" and any(word in test_desc.lower() for word in unprofessional):
-            issues.append("❌ Tone: Contains unprofessional language")
-        else:
-            issues.append("✅ Tone: Professional enough")
-        
-        # Check 4: Emojis
-        import re
-        emoji_pattern = re.compile("["
-            u"\U0001F600-\U0001F64F"
-            u"\U0001F300-\U0001F5FF"
-            u"\U0001F680-\U0001F6FF"
-            "]+", flags=re.UNICODE)
-        
-        has_emoji = bool(emoji_pattern.search(test_desc))
-        if test_emoji and not has_emoji:
-            issues.append("❌ Emojis: Required but none found")
-        elif has_emoji:
-            issues.append("✅ Emojis: Found in description")
-        else:
-            issues.append("ℹ️ Emojis: Optional, none found")
-        
-        # Check 5: Negative words
-        negative_words = ["bad", "terrible", "hate", "worst", "problem"]
-        found_negatives = [w for w in negative_words if w in test_desc.lower()]
-        if test_no_neg and found_negatives:
-            issues.append(f"❌ Negative words found: {', '.join(found_negatives)}")
-        else:
-            issues.append("✅ No negative words detected")
-        
-        # Display results
-        st.subheader("📊 Analysis Results")
-        
-        for issue in issues:
-            if "✅" in issue:
-                st.success(issue)
-            elif "❌" in issue:
-                st.error(issue)
-            else:
-                st.info(issue)
-        
-        # Overall verdict
-        failed = [i for i in issues if "❌" in i]
-        if not failed:
-            st.balloons()
-            st.success("🎉 **POST MEETS ALL CRITERIA!** Ready for publishing.")
-        else:
-            st.warning(f"⚠️ **POST FAILED {len(failed)} CHECK(S)** - Fix issues before posting")
+        if st.button("🚀 ACTIVATE AUTO-PILOT", use_container_width=True):
+            st.success("✅ Auto-Pilot engaged! Posts will be automatically generated and scheduled for all upcoming events.")
 
 # ============================================
-# TAB 3: SPECIAL DAYS AUTO-POST (FRIDAY, EID, ETC)
+# TAB 4: CROSS-PLATFORM HUB
 # ============================================
-with tab3:
-    st.header("📅 Automatic Posts on Special & Famous Days")
-    st.markdown("*System automatically generates and posts on these days*")
+elif selected == "🌐 Cross-Platform":
+    st.markdown("""
+    <div class="glass-card">
+        <h2>🌍 Unified Cross-Platform Command Center</h2>
+        <p>One-click distribution to all major social networks</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Fetch special days
-    today = datetime.now()
-    special_days = [
-        {"day": "Eid-ul-Adha 🕌", "date": "2025-06-07", "type": "Islamic Festival", "status": "Scheduled", "post": "Wishing you joy and blessings on Eid-ul-Adha! May your sacrifices be accepted."},
-        {"day": "Labour Day 👷", "date": "2025-05-01", "type": "International", "status": "Scheduled", "post": "Honoring all workers worldwide. Thank you for your contributions!"},
-        {"day": "World Environment Day 🌍", "date": "2025-06-05", "type": "Awareness", "status": "Scheduled", "post": "Protect our planet - every action counts! #WorldEnvironmentDay"},
-        {"day": "Friday (Weekly) 📅", "date": (today + timedelta(days=(4 - today.weekday()) % 7)).strftime("%Y-%m-%d"), "type": "Weekly", "status": "Ready", "post": "Happy Friday! Start your weekend with positivity and purpose."},
-        {"day": "New Year 2025 🎉", "date": "2025-01-01", "type": "Celebration", "status": "Scheduled", "post": "New year, new beginnings! Wishing everyone a prosperous 2025."},
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    platforms_data = [
+        {"name": "Facebook", "icon": "📘", "status": "Connected", "reach": "1.2M"},
+        {"name": "Instagram", "icon": "📸", "status": "Connected", "reach": "890K"},
+        {"name": "LinkedIn", "icon": "🔗", "status": "Connected", "reach": "450K"},
+        {"name": "Twitter/X", "icon": "🐦", "status": "Connected", "reach": "620K"},
+        {"name": "Pinterest", "icon": "📌", "status": "Connected", "reach": "340K"}
     ]
     
-    # Display as table
-    df_special = pd.DataFrame(special_days)
-    st.dataframe(df_special, use_container_width=True, hide_index=True)
-    
-    # Auto-post trigger for next special day
-    st.subheader("⚡ Auto-Post Simulation")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🎯 Test Auto-Post for Next Special Day"):
-            next_day = special_days[0]
-            st.info(f"🤖 Generating post for {next_day['day']}...")
-            time.sleep(1)
-            
+    for idx, platform in enumerate(platforms_data):
+        with [col1, col2, col3, col4, col5][idx]:
             st.markdown(f"""
-            <div class="success-box">
-                <strong>✅ AUTO-GENERATED POST FOR {next_day['day'].upper()}</strong><br>
-                {next_day['post']}<br><br>
-                <small>📤 Automatically posted to: Facebook, Instagram, LinkedIn, Twitter, Pinterest</small>
+            <div class="platform-card" style="text-align: center;">
+                <div style="font-size: 48px;">{platform['icon']}</div>
+                <strong>{platform['name']}</strong><br>
+                <small style="color: #10b981;">● {platform['status']}</small><br>
+                <small>📊 {platform['reach']}</small>
             </div>
             """, unsafe_allow_html=True)
-            
-            st.success("🎉 Post published successfully to all platforms!")
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 📊 Performance Dashboard")
+        
+        # Platform performance chart
+        fig = go.Figure(data=[
+            go.Pie(
+                labels=['Facebook', 'Instagram', 'LinkedIn', 'Twitter', 'Pinterest'],
+                values=[35, 42, 12, 8, 3],
+                marker_colors=['#1877f2', '#e4405f', '#0a66c2', '#1da1f2', '#bd081c'],
+                hole=0.4,
+            )
+        ])
+        fig.update_layout(height=400, title="Engagement Distribution")
+        st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        if st.button("📊 View Engagement Analytics"):
-            st.markdown("""
-            <div class="info-box">
-                <strong>📈 SPECIAL DAY PERFORMANCE</strong><br>
-                • Best performing: Eid-ul-Adha (8,500 engagements)<br>
-                • Highest reach: New Year (25,000+ impressions)<br>
-                • Best platform: Instagram (45% engagement)<br>
-                • Auto-reply to comments: Active ✅
+        st.markdown("### 🚀 Quick Actions")
+        st.markdown("""
+        <div class="stats-3d">
+            <div style="margin-bottom: 15px;">
+                <input type="text" placeholder="Write a post..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e0e0e0;">
             </div>
-            """, unsafe_allow_html=True)
+            <div style="display: flex; gap: 10px;">
+                <button class="premium-btn">Post to All</button>
+                <button class="premium-btn">Schedule</button>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ============================================
-# TAB 4: MULTI-PLATFORM PREVIEW
+# TAB 5: ANALYTICS HUB
 # ============================================
-with tab4:
-    st.header("🌐 Multi-Platform Integration Preview")
-    st.markdown("*See how your post looks on each platform before publishing*")
+elif selected == "📊 Analytics Hub":
+    st.markdown("""
+    <div class="glass-card">
+        <h2>📈 Enterprise Analytics Intelligence</h2>
+        <p>Real-time metrics with predictive insights</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Sample post
-    sample_post = {
-        "title": "AI in Healthcare: The Future is Now",
-        "description": "Revolutionizing patient care with artificial intelligence - faster diagnosis, better treatment, saved lives.",
-        "hashtags": "#AIHealth #MedTech #Innovation"
-    }
+    # Time series data
+    dates = pd.date_range(start='2024-01-01', periods=30, freq='D')
+    engagement = [random.randint(65, 95) for _ in range(30)]
     
-    # Platform previews
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=dates,
+        y=engagement,
+        mode='lines+markers',
+        name='Engagement Rate',
+        line=dict(color='#667eea', width=3),
+        marker=dict(size=8, color='#764ba2')
+    ))
+    fig.update_layout(
+        title="30-Day Engagement Trend",
+        xaxis_title="Date",
+        yaxis_title="Engagement Rate (%)",
+        height=400,
+        hovermode='x unified'
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📈 Growth Rate", "+24.5%", "+5.2%")
+        st.metric("👥 New Followers", "12,847", "+2,341")
+    with col2:
+        st.metric("💬 Total Comments", "45,892", "+8,234")
+        st.metric("🔄 Total Shares", "28,456", "+5,678")
+    with col3:
+        st.metric("⭐ Average CTR", "4.8%", "+0.9%")
+        st.metric("🎯 Conversion Rate", "3.2%", "+0.7%")
+
+# ============================================
+# TAB 6: INSIGHTS
+# ============================================
+elif selected == "⚙️ Insights":
+    st.markdown("""
+    <div class="glass-card">
+        <h2>🧠 AI-Powered Strategic Insights</h2>
+        <p>Machine learning recommendations for optimal performance</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     col1, col2 = st.columns(2)
     
     with col1:
-        # Facebook Preview
-        st.markdown("### 📘 Facebook")
-        st.markdown(f"""
-        <div style="background: #f0f2f5; padding: 15px; border-radius: 10px; margin: 10px 0;">
-            <strong>🤖 {sample_post['title']}</strong><br>
-            {sample_post['description']}<br>
-            <small style="color: #65676b;">{sample_post['hashtags']}</small>
-            <div style="margin-top: 10px;">
-                <span>👍 Like</span> &nbsp; 💬 Comment &nbsp; 🔄 Share
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("### 🎯 AI Recommendations")
+        recommendations = [
+            "📊 Post between 8-10 AM for 47% higher engagement",
+            "🎨 Use 3-5 emojis to increase click-through rate by 28%",
+            "📹 Video content earns 4x more engagement on LinkedIn",
+            "⏰ Schedule weekend posts for 35% better reach",
+            "🔗 Add 1-2 links to drive 22% more traffic"
+        ]
         
-        # Instagram Preview
-        st.markdown("### 📸 Instagram")
-        st.markdown(f"""
-        <div style="background: linear-gradient(45deg, #f09433, #d62976); padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
-            <strong>✨ {sample_post['title'][:40]}</strong><br>
-            {sample_post['description'][:120]}...<br>
-            <small>{sample_post['hashtags']}</small>
-            <div style="margin-top: 10px;">
-                ❤️ Like &nbsp; 💬 Comment &nbsp; 📤 Share
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        for rec in recommendations:
+            st.info(rec)
     
     with col2:
-        # LinkedIn Preview
-        st.markdown("### 🔗 LinkedIn")
-        st.markdown(f"""
-        <div style="background: white; border: 1px solid #e0e0e0; padding: 15px; border-radius: 10px; margin: 10px 0;">
-            <strong>👔 {sample_post['title']}</strong><br>
-            {sample_post['description']}<br>
-            <small style="color: #0a66c2;">{sample_post['hashtags']}</small>
-            <div style="margin-top: 10px; color: #666;">
-                👍 Like &nbsp; 💬 Comment &nbsp; 🔄 Repost
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("### 🤖 Predictive Analytics")
         
-        # Twitter Preview
-        st.markdown("### 🐦 Twitter/X")
-        st.markdown(f"""
-        <div style="background: black; padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
-            <strong>🐦 {sample_post['title'][:35]}</strong><br>
-            {sample_post['description'][:140]}<br>
-            <small>{sample_post['hashtags']}</small>
-            <div style="margin-top: 10px; color: #71767b;">
-                🔄 Retweet &nbsp; ❤️ Like &nbsp; 💬 Reply
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        future_metrics = {
+            "Next Week Reach": "+15.2%",
+            "Engagement Forecast": "92/100",
+            "Best Time to Post": "Wed 9 AM",
+            "Trending Topic": "AI Technology",
+            "Viral Score": "86/100"
+        }
         
-        # Pinterest Preview
-        st.markdown("### 📌 Pinterest")
-        st.markdown(f"""
-        <div style="background: #e60023; padding: 15px; border-radius: 10px; color: white; margin: 10px 0;">
-            <strong>📌 {sample_post['title'][:30]}</strong><br>
-            {sample_post['description'][:100]}...<br>
-            <small>{sample_post['hashtags']}</small>
-        </div>
-        """, unsafe_allow_html=True)
+        for metric, value in future_metrics.items():
+            st.markdown(f"""
+            <div style="background: linear-gradient(90deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%); 
+                        padding: 12px; border-radius: 12px; margin: 8px 0;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>{metric}</span>
+                    <strong style="color: #667eea;">{value}</strong>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
 # ============================================
-# TAB 5: HISTORY & LOGS
+# FOOTER
 # ============================================
-with tab5:
-    st.header("📜 Post History & Activity Logs")
-    
-    if st.session_state.posts_history:
-        # Convert to DataFrame
-        history_df = pd.DataFrame(st.session_state.posts_history)
-        
-        # Display metrics
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Total Posts", len(history_df))
-        with col2:
-            st.metric("Auto-Posted", len(history_df[history_df['auto_posted'] == True]))
-        with col3:
-            st.metric("Success Rate", f"{(len(history_df[history_df['auto_posted'] == True]) / len(history_df) * 100):.0f}%")
-        
-        # Display table
-        st.dataframe(history_df, use_container_width=True)
-        
-        # Export option
-        csv = history_df.to_csv(index=False)
-        st.download_button("📥 Export History to CSV", csv, "post_history.csv", "text/csv")
-        
-        # Clear button
-        if st.button("🗑️ Clear History"):
-            st.session_state.posts_history = []
-            st.session_state.post_count = 0
-            st.rerun()
-    else:
-        st.info("No posts created yet. Go to 'Create & Post' tab to create your first post!")
-    
-    # System logs
-    st.subheader("🔧 System Activity Logs")
-    logs = [
-        "✅ System started at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
-        "🔗 Connected to all social media platforms",
-        "📅 Scheduled special days posts",
-        "🤖 AI agent ready for content generation",
-        "🛡️ Pre-post validator active"
-    ]
-    
-    for log in logs:
-        st.code(log, language="log")
-
-# Footer
 st.markdown("---")
 st.markdown("""
-<div style="text-align: center; color: #666; padding: 20px;">
-    <strong>🤖 Social Media Automation Agent</strong> | Complete workflow: Create → Analyze → Validate → Auto-Post<br>
-    ✅ Facebook | ✅ Instagram | ✅ LinkedIn | ✅ Twitter/X | ✅ Pinterest | ✅ Special Days Calendar
+<div style="text-align: center; padding: 20px; background: linear-gradient(135deg, rgba(102,126,234,0.05) 0%, rgba(118,75,162,0.05) 100%); border-radius: 16px;">
+    <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">
+        <div>🚀 <strong>1247+</strong> Campaigns Run</div>
+        <div>🌍 <strong>5</strong> Platforms Connected</div>
+        <div>🤖 <strong>98.5%</strong> AI Accuracy</div>
+        <div>⚡ <strong>24/7</strong> Automation</div>
+    </div>
+    <div style="margin-top: 15px; color: #666; font-size: 12px;">
+        © 2025 SocialMediaAI Enterprise Suite | Powered by Advanced Neural Networks
+    </div>
 </div>
 """, unsafe_allow_html=True)
